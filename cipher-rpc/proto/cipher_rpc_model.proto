@@ -1,0 +1,290 @@
+syntax = "proto3";
+
+package rpc_model;
+
+
+service Node {
+  rpc GetAccountState (GetAccountStateRequest) returns (GetAccountStateResponse);
+  rpc SubmitTransaction (SubmitTransactionRequest) returns (stream SubmitTransactionResponse);
+  rpc GetTransactionReceipt (GetTransactionReceiptRequest) returns (GetTransactionReceiptResponse);
+  rpc GetTransactionsByAccount (GetTransactionsByAccountRequest) returns (GetTransactionsByAccountResponse);
+  rpc SmartContractReadOnlyCall(SmartContractReadOnlyCallRequest) returns (SmartContractReadOnlyCallResponse);
+  rpc GetChainState (GetChainStateRequest) returns (GetChainStateResponse);
+  rpc GetBlockByNumber (GetBlockByNumberRequest) returns (GetBlockByNumberResponse);
+  // rpc GetLatestBlockHeaders (GetLatestBlockHeadersRequest) returns (GetLatestBlockHeadersResponse);
+  // rpc GetLatestTransactions (GetLatestTransactionsRequest) returns (GetLatestTransactionsResponse);
+  rpc GetStake(GetStakeRequest) returns (GetStakeResponse);
+  rpc GetCurrentNonce(GetCurrentNonceRequest) returns (GetCurrentNonceResponse);
+  rpc GetEvents(GetEventsRequest) returns (stream GetEventsResponse);
+}
+
+// Account
+message AccountState {
+  string balance = 1;
+  string nonce = 2;
+  AccountType account_type = 3;
+}
+
+enum AccountType {
+  SYSTEM = 0;
+  USER = 1;
+}
+
+message GetAccountStateRequest {
+  string address = 1;
+}
+
+message GetAccountStateResponse {
+  AccountState account_state = 1;
+}
+
+// Transaction
+message NativeTokenTransfer {
+  bytes address = 1;
+  string amount = 2;
+}
+
+message SmartContractDeployment {
+  AccessType access_type = 1;
+  ContractType contract_type = 2;
+  bytes contract_code = 3;
+  uint64 value = 4;
+  bytes salt = 5;
+
+}
+
+message SmartContractInit {
+  bytes address = 1;
+  bytes arguments = 2;
+}
+
+message SmartContractFunctionCall {
+  bytes contract_address = 1;
+  bytes function_name = 2;
+  bytes arguments = 3;
+}
+
+message CreateStakingPool {
+  optional bytes contract_instance_address = 1;
+  optional string min_stake = 2;
+  optional string max_stake = 3;
+  optional string min_pool_balance = 4;
+  optional string max_pool_balance = 5;
+  optional string staking_period = 6;
+}
+
+message Stake {
+  bytes pool_address = 1;
+  string amount = 2;
+}
+
+message UnStake {
+  bytes pool_address = 1;
+  string amount = 2;
+}
+
+message GetCurrentNonceRequest {
+  string address = 1;
+}
+
+message GetCurrentNonceResponse {
+  string nonce = 1;
+}
+
+message GetEventsRequest {
+  string tx_hash = 1;
+  uint64 timestamp = 2;
+}
+
+message GetEventsResponse {
+  repeated bytes events_data = 1;
+}
+
+enum TransactionType {
+  TRANSACTION_TYPE_UNSPECIFIED = 0;
+  TRANSACTION_TYPE_NATIVE_TOKEN_TRANSFER = 1;
+  TRANSACTION_TYPE_SMART_CONTRACT_DEPLOYMENT = 2;
+  TRANSACTION_TYPE_SMART_CONTRACT_INSTANTIATION = 3;
+  TRANSACTION_TYPE_SMART_CONTRACT_FUNCTION_CALL = 4;
+  TRANSACTION_TYPE_STAKE = 5;
+  TRANSACTION_TYPE_UNSTAKE = 6;
+}
+
+enum AccessType {
+    PRIVATE = 0;
+    PUBLIC = 1;
+    RESTICTED = 2;
+}
+
+enum ContractType {
+  CIPHERVM = 0;
+  EVM = 1;
+  XTALK = 2;
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_SUCCEED = 0;
+  TRANSACTION_STATUS_FAILED = 1;
+}
+
+message Transaction {
+  TransactionType tx_type = 1;
+  oneof transaction {
+    NativeTokenTransfer native_token_transfer = 2;
+    SmartContractDeployment smart_contract_deployment = 3;
+    SmartContractInit smart_contract_init = 4;
+    SmartContractFunctionCall smart_contract_function_call = 5;
+    Stake stake = 6;
+    UnStake unstake = 7;
+  }
+  string nonce = 8;
+  string fee_limit = 9;
+  bytes signature = 10;
+  bytes verifying_key = 11;
+}
+
+// Used when submitting a transaction
+message SubmitTransactionRequest {
+  string nonce = 1;
+  oneof transaction_type {
+    NativeTokenTransfer native_token_transfer = 2;
+    SmartContractDeployment smart_contract_deployment = 3;
+    SmartContractInit smart_contract_init = 4;
+    SmartContractFunctionCall smart_contract_function_call = 5;
+    CreateStakingPool create_staking_pool = 9;
+    Stake stake = 10;
+    UnStake unstake = 11;
+  }
+  string fee_limit = 12;
+  bytes signature = 13;
+  bytes verifying_key = 14;
+}
+
+message SubmitTransactionResponse {
+  string hash = 1;
+  optional string contract_address = 2; // deployed or instantiated contract address
+}
+
+// Transaction receipt
+message GetTransactionReceiptRequest {
+  string hash = 1;
+}
+
+message GetTransactionReceiptResponse {
+  TransactionResponse transaction = 1;
+  TransactionStatus status = 2;
+
+}
+
+// Transactions list
+message GetTransactionsByAccountRequest {
+  string address = 1;
+  uint32 number_of_transactions = 2; // Returns last number_of_transactions
+  uint32 starting_from = 3; // Starting from index if specified
+}
+
+message GetTransactionsByAccountResponse {
+  repeated GetTransactionReceiptResponse transactions = 1;
+}
+
+// Chain state
+message GetChainStateRequest {
+}
+
+message GetChainStateResponse {
+  string cluster_address = 1;
+  string head_block_number = 2;
+  string head_block_hash = 3;
+}
+
+// Block
+message Block {
+  string number = 1;
+  string hash = 2;
+  string parent_hash = 3;
+  uint64 timestamp = 4;
+  repeated TransactionResponse transactions = 5;
+  BlockType block_type = 6;
+  string cluster_address = 7;
+}
+
+message BlockHeader {
+  uint64 block_number = 1;
+  string block_hash = 2;
+  string parent_hash = 3;
+  uint64 timestamp = 4;
+  BlockType block_type = 5;
+  string cluster_address = 6;
+  uint32 num_transactions = 7;
+}
+
+enum BlockType {
+  BLOCK_TYPE_UNSPECIFIED = 0;
+  BLOCK_TYPE_CIPHER_TOKEN_BLOCK = 1;
+  BLOCK_TYPE_CIPHER_CONTRACT_BLOCK = 2;
+  BLOCK_TYPE_XTALK_BLOCK = 3;
+}
+
+message GetBlockByNumberRequest {
+  string block_number = 1;
+}
+
+message GetBlockByNumberResponse {
+  Block block = 1;
+}
+
+message GetLatestBlockHeadersRequest {
+  uint32 number_of_blocks = 1;
+  uint32 blocks_per_page = 2;
+}
+
+message GetLatestBlockHeadersResponse {
+  uint32 page_number = 1;
+  repeated BlockHeader page = 2;
+}
+
+message GetLatestTransactionsRequest {
+  uint32 number_of_transactions = 1;
+  uint32 transactions_per_page = 2;
+}
+
+message GetLatestTransactionsResponse {
+  uint32 page_number = 1;
+  repeated TransactionResponse page = 2; // Each page contains number_of_transactions transactions
+}
+
+message TransactionResponse {
+  Transaction transaction = 1;
+  bytes from = 2; // Potential "to" address is inside transaction if tx is of a type that has a "to" address
+  bytes transaction_hash = 3;
+  bytes block_hash = 4;
+  int64 block_number = 5;
+  string fee_used = 6;
+  uint64 timestamp = 7;
+}
+
+// Smart-contract read-only call
+enum SmartContractReadOnlyCallStatus {
+  SMART_CONTRACT_READ_ONLY_CALL_STATUS_UNSPECIFIED = 0;
+  SMART_CONTRACT_READ_ONLY_CALL_STATUS_FAILED = 1;
+  SMART_CONTRACT_READ_ONLY_CALL_STATUS_SUCCEEDED = 2;
+}
+
+message SmartContractReadOnlyCallRequest {
+  SmartContractFunctionCall call = 1;
+}
+
+message SmartContractReadOnlyCallResponse {
+  SmartContractReadOnlyCallStatus status = 1;
+  bytes result = 2;
+}
+
+// Get stake
+message GetStakeRequest {
+  string pool_address = 1;
+  string account_address = 2;
+}
+
+message GetStakeResponse {
+  string amount = 1;
+}

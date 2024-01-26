@@ -1,0 +1,9 @@
+{
+  "smart_contract_deployment": [
+    "PUBLIC",
+    "CIPHERVM",
+    { "file": "../validate/src/cipher_contract/cipher_ft.o" },
+    0,
+    { "text": "00000000000000000000000000000000" }
+  ]
+}

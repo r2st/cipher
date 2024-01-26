@@ -1,0 +1,127 @@
+version: "3"
+services:
+  cipher-node1:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: cipher-node
+    entrypoint: /cipher/cipher-consensus/container/kickstart-server_1.sh
+    environment:
+      - POSTGRES_HOST=postgres1
+      - POSTGRES_PORT=5432
+    command: /cipher/cipher-consensus/container/run_1.sh
+    volumes:
+      - ../:/cipher/cipher-consensus
+      - ../container/config_1.toml:/cipher/cipher-consensus/config.toml
+    ports:
+      - 50051:50051
+      - 50052:50052
+      - 5010:5010
+    restart: on-failure
+    networks:
+      - cipher_network
+    depends_on:
+      - postgres1
+
+  cipher-node2:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: cipher-node
+    entrypoint: /cipher/cipher-consensus/container/kickstart-server_2.sh
+    environment:
+      - POSTGRES_HOST=postgres2
+      - POSTGRES_PORT=5433
+    command: /cipher/cipher-consensus/container/run_2.sh
+    volumes:
+      - ../:/cipher/cipher-consensus
+      - ../container/config_2.toml:/cipher/cipher-consensus/config.toml
+    ports:
+      - 50041:50051
+      - 50042:50052
+      - 5062:5010
+    restart: on-failure
+    networks:
+      - cipher_network
+    depends_on:
+      - postgres2
+
+  # cipher-node3:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: cipher-node
+  #   entrypoint: ./kickstart-server_3.sh
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     - POSTGRES_HOST=postgres3
+  #     - POSTGRES_PORT=5434
+  #   command: ./run_3.sh
+  #   volumes:
+  #     - ./:/cipher/cipher-consensus
+  #     - ./.env:/cipher/cipher-consensus/.env
+  #     - ./config_3.toml:/cipher/cipher-consensus/config.toml
+  #   ports:
+  #     - 50045:50051
+  #     - 50046:50052
+  #     - 5064:5010
+  #   restart: on-failure
+  #   networks:
+  #     - cipher_network
+  #   depends_on:
+  #     - postgres3
+
+  postgres1:
+    image: postgres
+    container_name: postgres1
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data1:/var/lib/postgresql/data
+    networks:
+      - cipher_network
+
+  postgres2:
+    image: postgres
+    container_name: postgres2
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data2:/var/lib/postgresql/data
+    networks:
+      - cipher_network
+
+  # postgres3:
+  #   image: postgres
+  #   container_name: postgres3
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #   ports:
+  #     - '5434:5432'
+  #   volumes:
+  #     - postgres_data3:/var/lib/postgresql/data
+  #   networks:
+  #     - cipher_network
+
+volumes:
+  postgres_data1:
+    driver: local
+  postgres_data2:
+    driver: local
+  # postgres_data3:
+  #   driver: local
+
+networks:
+  cipher_network:
+    driver: bridge

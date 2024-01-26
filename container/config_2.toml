@@ -1,0 +1,37 @@
+dev_mode = false
+multinode_mode = true
+replication_enable = true # make true for production
+is_local = false          # make false for production
+max_size = 100
+fee_limit = 100000
+rate_limit = 15
+time_frame_seconds = 100
+expiration_seconds = 100
+block_time = 10000
+
+# Node 2
+node_port = "5062"
+node_ip_address = "/ip4/0.0.0.0/tcp/5062"
+node_private_key = "ceb3a54f6c2c1a799e8fe6202d1f13afa93e31eb9ea8c510f6e0cdd29b805a86"
+node_verifying_key = "033b2b2dfefe258a37d98fc7505685aed367f3ae73bfba87824393df70ed2ed851"
+node_address = "bd971c6e28713bf92a0e4c28d93375c46c5f8a0f"
+node_metadata = "metadata"
+cluster_address = "0101010101010101010101010101010101010101"
+boot_nodes = [
+    "/ip4/3.36.91.184/tcp/5010/p2p/16Uiu2HAm5cnMkuwwmNyNdHNzxvhtHxKQ1xJtF7zb5Fpm9zbe7qmm",
+]
+sync_node_address = "http://3.36.91.184:50052"
+grpc_port = "0.0.0.0:50042"
+jsonrpc_port = "0.0.0.0:50041"
+db_type = 1
+validator_pool_address = "522b3294fe78d57a1d7e1c37393f11841f6a9494"
+cassandra_host = "127.0.0.1:9043"
+cassandra_username = "cassandra"
+cassandra_password = "cassandra"
+cassandra_keyspace = "cipher"
+postgres_host = "postgres2:5432"
+postgres_username = "postgres"
+postgres_password = "postgres"
+postgres_db_name = "cipher"
+postgres_pool_size = 10
+rocksdb_name = "cipher_rocks"

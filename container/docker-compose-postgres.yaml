@@ -1,0 +1,46 @@
+version: "3"
+services:
+  cipher-node:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: cipher-node
+    entrypoint: /cipher/cipher-consensus/container/kickstart-server_1.sh
+    environment:
+      - POSTGRES_HOST=postgres1
+      - POSTGRES_PORT=5432
+    command: /cipher/cipher-consensus/container/run_1.sh
+    volumes:
+      - ../:/cipher/cipher-consensus
+      - ../container/config_1.toml:/cipher/cipher-consensus/config.toml
+    ports:
+      - 50051:50051 
+      - 50052:50052
+      - 5010:5010
+    restart: on-failure
+    networks:
+      - cipher_network
+    depends_on:
+      - postgres1
+
+  postgres1:
+    image: postgres
+    container_name: postgres1
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cipher_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  cipher_network:
+    driver: bridge

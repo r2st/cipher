@@ -1,0 +1,5 @@
+{
+  "contract_instance_address": {"hex":"beedf108ae904c2adc6700663cf1c850e096094c"},
+  "function": {"text":"get_payload_to_sign"},
+  "arguments": {"text": "{ \"global_tx_id\": \"10EC8B28F0F3881BC108B367A9FEED1AA625FBFCBF56F9BC8FA36FDDAAFD5F00\" }"} 
+}

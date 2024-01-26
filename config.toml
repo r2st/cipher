@@ -1,0 +1,139 @@
+dev_mode = true
+multinode_mode = false
+replication_enable = false # make true for production
+whitelist_check = true            # make true for production
+max_size = 100
+fee_limit = 10000000
+rate_limit = 15
+time_frame_seconds = 100
+expiration_seconds = 100
+block_time = 3000
+
+# Node 1
+ node_port = "5010"
+ node_ip_address = "/ip4/0.0.0.0/tcp/5010"
+ node_private_key = "6913aeae91daf21a8381b1af75272fe6fae8ec4a21110674815c8f0691e32758"
+ node_verifying_key = "02976d7877db9e40669feb13630396dade7e045cd268dd53e686647ff77a7e42a4"
+ node_address = "78e044394595d4984f66c1b19059bc14ecc24063"
+ node_metadata = "metadata"
+ cluster_address = "0101010101010101010101010101010101010101"
+ boot_nodes = []
+ sync_node_address = ""
+ grpc_port = "0.0.0.0:50052"
+ jsonrpc_port = "0.0.0.0:50051"
+ # Supports multiple databases and please use `0` for cassandra
+ # Cassandra = 0 , Postgres = 1 , RocksDb = 2
+ db_type = 1
+ validator_pool_address = "522b3294fe78d57a1d7e1c37393f11841f6a9494"
+ # Change `cassandra host` to appropriate host name when running in production or staging
+ cassandra_host = "127.0.0.1:9042"
+ cassandra_username = "cassandra"
+ cassandra_password = "cassandra"
+ cassandra_keyspace = "cipher"
+ postgres_host = "127.0.0.1:5432"
+ postgres_username = "postgres"
+ postgres_password = "postgres"
+ postgres_pool_size = 10
+ postgres_db_name = "cipher"
+ postgres_test_db_name = "cipher_test"
+ rocksdb_name = "cipher_rocks"
+
+# Node 2
+# node_port = "5010"
+# node_ip_address = "/ip4/0.0.0.0/tcp/5010"
+# node_private_key = "f6b82b53ecbe1978b8651f740739b1d181f0285381e65e5e3491d8e821ab9bd0"
+# node_verifying_key = "027f60fb901bdbc58996e0800f0f7d01b5d9a010f80f075ede7e05585a87737674"
+# node_address = "7b7ab20f75b691e90c546e89e41aa23b0a821444"
+# node_metadata = "metadata 2"
+# cluster_address = "0101010101010101010101010101010101010101"
+# boot_nodes = ["/ip4/3.36.91.184/tcp/5010/p2p/16Uiu2HAm5cnMkuwwmNyNdHNzxvhtHxKQ1xJtF7zb5Fpm9zbe7qmm"]
+# grpc_port = "0.0.0.0:50052"
+# jsonrpc_port = "0.0.0.0:50051"
+# db_type = 1
+# validator_pool_address = "522b3294fe78d57a1d7e1c37393f11841f6a9494"
+# cassandra_host = "127.0.0.1:9043"
+# cassandra_username = "cassandra"
+# cassandra_password = "cassandra"
+# cassandra_keyspace = "cipher"
+# postgres_host = "127.0.0.1:5432"
+# postgres_username = "postgres"
+# postgres_password = "postgres"
+# postgres_db_name = "cipher"
+# postgres_test_db_name = "cipher_test"
+# postgres_pool_size = 3
+# rocksdb_name = "cipher_rocks"
+
+# Node 3
+# node_port = "5010"
+# node_ip_address = "/ip4/0.0.0.0/tcp/5010"
+# node_private_key = "484ed0dff172fd97fdbf7278a38591b9bebab0f3230795983d8822232e692a44"
+# node_verifying_key = "02ebb7404d2b9f855143fc1bf3ba04e30975a70696723a15cfcab3824854399f70"
+# node_address = "50028cf7ed245e4ac9e472d5277f14ed1c7ab384"
+# node_metadata = "node3 metadata"
+# cluster_address = "0101010101010101010101010101010101010101"
+# validator_pool_address = "522b3294fe78d57a1d7e1c37393f11841f6a9494"
+# boot_nodes = ["/ip4/3.36.91.184/tcp/5010/p2p/16Uiu2HAm5cnMkuwwmNyNdHNzxvhtHxKQ1xJtF7zb5Fpm9zbe7qmm", "/ip4/13.125.60.47/tcp/5010/p2p/16Uiu2HAm3zuXfm2arJvkSqPXphjJN7N9Lo9iBf7YHihfF7ANvVNB"]
+# grpc_port = "0.0.0.0:50052"
+# jsonrpc_port = "0.0.0.0:50051"
+# db_type = 1
+# cassandra_host = "127.0.0.1:9043"
+# cassandra_username = "cassandra"
+# cassandra_password = "cassandra"
+# cassandra_keyspace = "cipher"
+# postgres_host = "localhost:5432"
+# postgres_username = "postgres"
+# postgres_password = "postgres"
+# postgres_pool_size = 10
+# postgres_db_name = "cipher"
+# postgres_test_db_name = "cipher_test"
+# rocksdb_name = "cipher_rocks"
+
+# Node 4
+# node_port = "5013"
+# node_ip_address = "/ip4/0.0.0.0/tcp/5013"
+# node_private_key = "bf7b645cad4c527189fe9bf59a8db74f28dd6f927637b19e4fe0fe60b1afc72f"
+# node_verifying_key = "022002b8e853f6c64c2c20e15170d8604628d2b0d0de5e234766adc4cea07bdf2a"
+# node_address = "4489da9d81f0bc8125c8efdda1c117a7a895b43d"
+# node_metadata = "metadata"
+# cluster_address = "0101010101010101010101010101010101010101"
+# boot_nodes = ["/ip4/192.168.64.1/tcp/5010/p2p/16Uiu2HAm5cnMkuwwmNyNdHNzxvhtHxKQ1xJtF7zb5Fpm9zbe7qmm"]
+# grpc_port = "0.0.0.0:50058"
+# jsonrpc_port = "0.0.0.0:50057"
+# db_type = 0
+# validator_pool_address = "522b3294fe78d57a1d7e1c37393f11841f6a9494"
+# cassandra_host = "127.0.0.1:9045"
+# cassandra_username = "cassandra"
+# cassandra_password = "cassandra"
+# cassandra_keyspace = "cipher"
+# postgres_host = "localhost:5432/cipher"
+# postgres_username = "postgres"
+# postgres_password = "postgres"
+# postgres_db_name = "cipher"
+# postgres_test_db_name = "cipher_test"
+# postgres_pool_size = 3
+# rocksdb_name = "cipher_rocks"
+
+# Node 5
+# node_port = "5014"
+# node_ip_address = "/ip4/0.0.0.0/tcp/5014"
+# node_private_key = "d545e67bfab13d1ae4e2e8db9b65f7288dd57802d1c1377f2d4dc3959f63a72b"
+# node_verifying_key = "03228f905047eb33dc4e3d7bb97a98ba632c7c638cede18e6007fc60d3b92c11eb"
+# node_address = "0x3b647b46c9ba4fca221ccf933c09b653c2b4581f"
+# node_metadata = "metadata"
+# cluster_address = "0101010101010101010101010101010101010101"
+# boot_nodes = ["/ip4/192.168.64.1/tcp/5010/p2p/16Uiu2HAm5cnMkuwwmNyNdHNzxvhtHxKQ1xJtF7zb5Fpm9zbe7qmm"]
+# grpc_port = "0.0.0.0:50060"
+# jsonrpc_port = "0.0.0.0:50059"
+# db_type = 0
+# validator_pool_address = "522b3294fe78d57a1d7e1c37393f11841f6a9494"
+# cassandra_host = "127.0.0.1:9046"
+# cassandra_username = "cassandra"
+# cassandra_password = "cassandra"
+# cassandra_keyspace = "cipher"
+# postgres_host = "localhost:5432/cipher"
+# postgres_username = "postgres"
+# postgres_password = "postgres"
+# postgres_db_name = "cipher"
+# postgres_test_db_name = "cipher_test"
+# postgres_pool_size = 3
+# rocksdb_name = "cipher_rocks"

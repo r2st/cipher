@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  cipher-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cipher-node
+    entrypoint: ./kickstart-server.sh
+    command: ./run.sh
+    volumes:
+      - ./:/cipher/cipher-consensus
+      - ./config.toml:/cipher/cipher-consensus/config.toml
+    ports:
+      - 50051:50051 # TODO: move to config
+      - 50052:50052 # TODO: move to config
+      - 5010:5010
+    networks:
+      - cassandra-network
+    restart: on-failure
+    depends_on:
+      - cassandra
+
+  cassandra:
+    image: cassandra
+    ports:
+      - "9042:9042"
+      - "7199:7199"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+      - ./cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+    environment:
+      - CASSANDRA_START_RPC=true
+    restart: on-failure
+    env_file:
+      - casandra.env # Corrected the typo here, from casandra.env to cassandra.env
+    healthcheck:
+      test: ["CMD", "nodetool", "status"]
+      interval: 15s
+      timeout: 7s
+      retries: 3
+      start_period: 30s
+    networks:
+      - cassandra-network
+
+volumes:
+  cassandra_data:
+
+networks:
+  cassandra-network:
+    driver: bridge

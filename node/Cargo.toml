@@ -1,0 +1,44 @@
+[package]
+name = "node"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+primitives = { package = 'primitives', path = '../primitives', default-features = false }
+mempool = { package = 'mempool', path = '../mempool', default-features = false }
+cluster = { package = 'cluster', path = '../cluster', default-features = false }
+p2p = { package = 'p2p', path = '../p2p', default-features = false }
+account = { package = 'account', path = '../account', default-features = false }
+block = { package = 'block', path = '../block', default-features = false }
+system = { package = 'system', path = '../system', default-features = false }
+consensus = { package = 'consensus', path = '../consensus', default-features = false }
+contract = { package = 'contract', path = '../contract', default-features = false }
+contract-instance = { package = 'contract_instance', path = '../contract_instance', default-features = false }
+block_proposer = { package = 'block_proposer', path = '../block_proposer', default-features = false }
+vrf-helper = { package = 'vrf-helper', path = '../vrf-helper', default-features = false }
+validator = { package = 'validator', path = '../validator', default-features = false }
+genesis = { package = 'genesis', path = '../genesis', default-features = false }
+node_info = { package = 'node_info', path = '../node_info', default-features = false }
+cipher-rpc = { package = "cipher-rpc", path = '../cipher-rpc', default-features = false }
+db = { package = 'db', path = '../db', default-features = false }
+util = { package = 'util', path = '../util', default-features = false }
+execute = { package = 'execute', path = '../execute', default-features = false }
+
+tokio = { version = "1.34.0", features = ["full"] }
+log = "0.4.18"
+bincode = "1.3.3"
+hex = "0.4.3"
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = "1.0.96"
+rand = "0.8.5"
+anyhow = "1.0.71"
+lazy_static = "1.4.0"
+libp2p = { version = "0.51.4", features = ["secp256k1"] }
+secp256k1 = { version = "0.27.0", features = [] }
+serial_test = "3.0.0"
+ethers = { version = "2.0.8", features = ["ws", "rustls"] }
+tonic = "0.10.2"
+regex = "1.10.2"
+futures = "0.3.29"

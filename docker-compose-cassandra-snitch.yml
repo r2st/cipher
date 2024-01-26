@@ -1,0 +1,86 @@
+version: "3"
+services:
+  cipher-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cipher-node
+    volumes:
+      - ./:/cipher/cipher-consensus
+      - ./config.toml:/cipher/cipher-consensus/config.toml
+    entrypoint: ./kickstart-server.sh
+    command: ./run.sh 
+    # logging:
+    #   driver: awslogs
+    #   options:
+    #     awslogs-region: ap-southeast-2
+    #     awslogs-group: CIPHER-Mainnet-Beta-Core
+    ports:
+      - 50051:50051 # TODO: move to config
+      - 50052:50052 # TODO: move to config
+      - 5010:5010
+    restart: on-failure
+    networks:
+      - cassandra-network
+    depends_on:
+      - cassandra1
+
+  cassandra1:
+    image: cassandra:latest
+    container_name: cassandra1
+    environment:
+      - CASSANDRA_ENDPOINT_SNITCH=SimpleSnitch
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_CLUSTER_NAME=cipher-cassandra
+      - CASSANDRA_BROADCAST_ADDRESS=cassandra1
+      - CASSANDRA_LISTEN_ADDRESS=cassandra1
+    volumes:
+      - cassandra1_data:/var/lib/cassandra
+      - ./cassandra-env.sh:/etc/cassandra/cassandra-env.sh
+    # logging:
+      # driver: awslogs
+      # options:
+        # awslogs-region: ap-southeast-2
+        # awslogs-group: CIPHER-Mainnet-Beta-Cassandra
+    networks:
+      - cassandra-network
+    healthcheck:
+      test: ["CMD", "nodetool", "status"]
+      interval: 15s
+      timeout: 7s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "9042:9042"
+      - "7199:7199"
+
+  cassandra2:
+    image: cassandra:latest
+    container_name: cassandra2
+    environment:
+      - CASSANDRA_ENDPOINT_SNITCH=SimpleSnitch
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack2
+      - CASSANDRA_SEEDS=cassandra1
+      - CASSANDRA_CLUSTER_NAME=cipher-cassandra
+      - CASSANDRA_LISTEN_ADDRESS=cassandra2
+    volumes:
+      - cassandra2_data:/var/lib/cassandra
+    networks:
+      - cassandra-network
+    healthcheck:
+      test: ["CMD", "nodetool", "status"]
+      interval: 15s
+      timeout: 7s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - cassandra1
+
+volumes:
+  cassandra1_data:
+  cassandra2_data:
+
+networks:
+  cassandra-network:

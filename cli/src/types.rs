@@ -1,0 +1,220 @@
+use anyhow::{anyhow, Error};
+use cipher_rpc;
+use primitives::{Address, Balance, BlockNumber};
+use serde::{Deserialize, Serialize};
+
+/// Serde wrappers for Transaction types, used to construct transaction payloads in the CLI
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[repr(i8)]
+pub enum ContractType {
+	CIPHERVM = 0,
+	EVM = 1,
+	XTALK = 2,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[repr(i8)]
+pub enum AccessType {
+	PRIVATE = 0,
+	PUBLIC = 1,
+	RESTICTED = 2, /* Will be used in future to restrict the contract to be initiated by only
+	                * specified addresses. */
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum U8s {
+	Hex(String),
+	Bytes(Vec<u8>),
+	File(String),
+	Text(String),
+}
+
+impl TryFrom<U8s> for Vec<u8> {
+	type Error = Error;
+
+	fn try_from(value: U8s) -> Result<Self, Self::Error> {
+		Ok(match value {
+			U8s::Hex(s) if &s == "" => vec![],
+			U8s::Hex(s) => hex::decode(&s)?,
+			U8s::Bytes(v) => v,
+			U8s::File(f) => std::fs::read(f)?,
+			U8s::Text(t) => t.into_bytes(),
+		})
+	}
+}
+
+impl TryFrom<U8s> for Address {
+	type Error = Error;
+
+	fn try_from(value: U8s) -> Result<Self, Self::Error> {
+		let bytes: Vec<u8> = value.try_into()?;
+		if bytes.len() != 20 {
+			Err(anyhow!("Invalid address {bytes:?}, length <> 20 bytes"))
+		} else {
+			let mut array = [0u8; 20];
+			array.copy_from_slice(&bytes);
+			Ok(array)
+		}
+	}
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Transaction {
+	NativeTokenTransfer(U8s, Balance),
+	SmartContractDeployment(AccessType, ContractType, U8s, Balance, U8s),
+	SmartContractInit(U8s, U8s),
+	SmartContractFunctionCall {
+		contract_instance_address: U8s,
+		function: U8s,
+		arguments: U8s,
+	},
+	CreateStakingPool {
+		contract_instance_address: Option<Address>,
+		min_stake: Option<Balance>,
+		max_stake: Option<Balance>,
+		min_pool_balance: Option<Balance>,
+		max_pool_balance: Option<Balance>,
+		staking_period: Option<BlockNumber>,
+	},
+	Stake {
+		pool_address: U8s,
+		amount: Balance,
+	},
+	UnStake {
+		pool_address: U8s,
+		amount: Balance,
+	},
+}
+
+impl TryFrom<Transaction> for cipher_rpc::rpc_model::submit_transaction_request::TransactionType {
+	type Error = Error;
+
+	fn try_from(value: Transaction) -> Result<Self, Self::Error> {
+		Ok(match value {
+            Transaction::NativeTokenTransfer(address, balance) => {
+                cipher_rpc::rpc_model::submit_transaction_request::TransactionType::NativeTokenTransfer(
+                    cipher_rpc::rpc_model::NativeTokenTransfer {
+                        address: TryInto::<Vec<u8>>::try_into(address)?,
+                        amount: balance.to_string(),
+                    },
+                )
+            }
+            Transaction::SmartContractDeployment(access_type, contract_type, code, value, salt) => {
+                let access_type = match access_type {
+                    AccessType::PRIVATE => cipher_rpc::rpc_model::AccessType::Private,
+                    AccessType::PUBLIC => cipher_rpc::rpc_model::AccessType::Public,
+                    AccessType::RESTICTED => cipher_rpc::rpc_model::AccessType::Resticted,
+                };
+                let contract_type = match contract_type {
+                    ContractType::EVM => cipher_rpc::rpc_model::ContractType::Evm,
+                    _ => panic!("invalid contract type"),
+                };
+                cipher_rpc::rpc_model::submit_transaction_request::TransactionType::SmartContractDeployment(
+                    cipher_rpc::rpc_model::SmartContractDeployment {
+                        access_type: access_type.into(),
+                        contract_type: contract_type.into(),
+                        contract_code: code.try_into()?,
+                        value: value as u64,
+                        salt: salt.try_into()?,
+                    },
+                )
+            }
+            Transaction::SmartContractInit(address, arguments) => {
+                cipher_rpc::rpc_model::submit_transaction_request::TransactionType::SmartContractInit(
+                    cipher_rpc::rpc_model::SmartContractInit {
+                        address: TryInto::<Vec<u8>>::try_into(address)?,
+                        arguments: arguments.try_into()?,
+                    },
+                )
+            }
+            Transaction::SmartContractFunctionCall {
+                contract_instance_address,
+                function,
+                arguments,
+            } => cipher_rpc::rpc_model::submit_transaction_request::TransactionType::SmartContractFunctionCall(
+                cipher_rpc::rpc_model::SmartContractFunctionCall {
+                    contract_address: TryInto::<Vec<u8>>::try_into(contract_instance_address)?,
+                    function_name: TryInto::<Vec<u8>>::try_into(function)?,
+                    arguments: arguments.try_into()?,
+                },
+            ),
+            Transaction::CreateStakingPool {
+                contract_instance_address,
+                min_stake,
+                max_stake,
+                min_pool_balance,
+                max_pool_balance,
+                staking_period,
+            } => {
+                let contract_instance_address: Option<Vec<u8>> = contract_instance_address
+                    .map(TryInto::try_into)
+                    .transpose()?;
+                cipher_rpc::rpc_model::submit_transaction_request::TransactionType::CreateStakingPool(
+                    cipher_rpc::rpc_model::CreateStakingPool {
+                        contract_instance_address,
+                        min_stake:  min_stake.map(|x| x.to_string()),
+                        max_stake: max_stake.map(|x| x.to_string()),
+                        min_pool_balance: min_pool_balance.map(|x| x.to_string()),
+                        max_pool_balance: max_pool_balance.map(|x| x.to_string()),
+                        staking_period: staking_period.map(|x| x.to_string()),
+                    },
+                )
+            }
+            Transaction::Stake {
+                pool_address,
+                amount,
+            } => cipher_rpc::rpc_model::submit_transaction_request::TransactionType::Stake(cipher_rpc::rpc_model::Stake {
+                pool_address: TryInto::<Vec<u8>>::try_into(pool_address)?,
+                amount: amount.to_string()
+            }),
+            Transaction::UnStake {
+                pool_address,
+                amount,
+            } => cipher_rpc::rpc_model::submit_transaction_request::TransactionType::Unstake(cipher_rpc::rpc_model::UnStake {
+                pool_address: TryInto::<Vec<u8>>::try_into(pool_address)?,
+                amount: amount.to_string(),
+            }),
+        })
+	}
+}
+
+/// Root of the transaction deployment
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TransactionDeployment {
+	pub private_key: U8s,
+	pub public_key: U8s,
+	pub transaction: Transaction,
+}
+
+// #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+// pub struct SmartContractReadOnlyFunctionCall {
+//     pub contract_instance_address: U8s,
+//     pub function: U8s,
+//     pub arguments: U8s,
+// }
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SmartContractReadOnlyFunctionCall {
+	pub contract_instance_address: U8s,
+	pub function: U8s,
+	pub arguments: U8s,
+}
+
+impl TryFrom<SmartContractReadOnlyFunctionCall>
+	for cipher_rpc::rpc_model::SmartContractReadOnlyCallRequest
+{
+	type Error = Error;
+
+	fn try_from(value: SmartContractReadOnlyFunctionCall) -> Result<Self, Self::Error> {
+		Ok(cipher_rpc::rpc_model::SmartContractReadOnlyCallRequest {
+			call: Some(cipher_rpc::rpc_model::SmartContractFunctionCall {
+				contract_address: TryInto::<Vec<u8>>::try_into(value.contract_instance_address)?,
+				function_name: TryInto::<Vec<u8>>::try_into(value.function)?,
+				arguments: value.arguments.try_into()?,
+			}),
+		})
+	}
+}
