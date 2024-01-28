@@ -19,7 +19,7 @@ async-trait = "0.1.68"
 log = "0.4.18"
 dotenv = "0.15.0"
 futures = "0.3.28"
-secp256k1 = { version = "0.27.0", features = [] }
+secp256k1 = { version = "0.28.1", features = ["hashes"] }
 # CIPHER dependencies
 account = { package = 'account', path = '../account', default-features = false }
 staking = { package = 'staking', path = '../staking', default-features = false }

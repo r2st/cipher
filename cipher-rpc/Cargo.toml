@@ -14,9 +14,9 @@ tonic = "0.10.2"
 prost = "0.12.3"
 prost-types = "0.12.3"
 reqwest = { version = "0.11", features = ["json"] }
-secp256k1 = { version = "0.27.0", features = [
-    "bitcoin_hashes",
+secp256k1 = { version = "0.28.1", features = [
     "global-context",
+    "hashes",
 ] }
 serde = { version = "1.0.163", features = ["derive"] }
 serde_json = "1.0.96"
