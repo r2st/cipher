@@ -7,15 +7,18 @@ use either::Either;
 use libp2p::{
 	core::upgrade,
 	identify,
-	kad::{record::store::MemoryStore, Kademlia, KademliaConfig, KademliaEvent, QueryResult},
+	kad::{
+		store::MemoryStore, Behaviour as Kademlia, Config as KademliaConfig,
+		Event as KademliaEvent, QueryResult,
+	},
 };
-
+//::{record::store::MemoryStore, Kademlia, KademliaConfig, KademliaEvent, QueryResult},
 use libp2p::{
 	identity,
 	identity::Keypair,
 	noise,
-	swarm::{NetworkBehaviour, Swarm, SwarmBuilder, SwarmEvent},
-	tcp, yamux, Multiaddr, PeerId, Transport,
+	swarm::{NetworkBehaviour, Swarm, SwarmEvent},
+	tcp, yamux, Multiaddr, PeerId, SwarmBuilder, Transport,
 };
 
 use libp2p::multiaddr::Protocol;
@@ -54,17 +57,17 @@ use tokio::{
 ///
 /// - The network task driving the network itself.
 pub async fn new(
-	local_keys: Keypair,
+	local_key: Keypair,
 	bootnodes: &[&str],
 ) -> Result<(Client, mpsc::Receiver<Event>, EventLoop), Box<dyn Error>> {
 	// Create a public/private key pair, either random or based on a seed.
-	let local_peer_id = local_keys.public().to_peer_id();
+	let local_peer_id = local_key.public().to_peer_id();
 
-	let _tcp_transport = libp2p::tokio_development_transport(local_keys.clone())?;
+	//let _tcp_transport = libp2p::tokio_development_transport(local_key.clone())?;
 
 	let transport = tcp::tokio::Transport::new(tcp::Config::default().nodelay(true))
 		.upgrade(upgrade::Version::V1)
-		.authenticate(noise::Config::new(&local_keys).expect("signing libp2p-noise static keypair"))
+		.authenticate(noise::Config::new(&local_key).expect("signing libp2p-noise static keypair"))
 		.multiplex(yamux::Config::default())
 		.timeout(std::time::Duration::from_secs(20))
 		.boxed();
@@ -100,7 +103,7 @@ pub async fn new(
 
 	// Build the Swarm, connecting the lower layer transport logic with the
 	// higher layer network behaviour logic.
-	let swarm = {
+	/*let swarm = {
 		let mut behaviour = Behaviour {
 			identify: identify::Behaviour::new(identify::Config::new(
 				"/ipfs/id/1.0.0".to_string(),
@@ -123,7 +126,40 @@ pub async fn new(
 		}
 
 		SwarmBuilder::with_tokio_executor(transport, behaviour, local_peer_id).build()
-	};
+	};*/
+
+	let mut swarm = SwarmBuilder::with_new_identity()
+		.with_tokio()
+		.with_tcp(
+			tcp::Config::default(),
+			noise::Config::new,
+			yamux::Config::default,
+		)?
+		.with_quic()
+		.with_behaviour(|key| {
+			let mut behaviour = Behaviour {
+				identify: identify::Behaviour::new(identify::Config::new(
+					"/ipfs/id/1.0.0".to_string(),
+					local_key.public(),
+				)),
+				// mdns: mdns::tokio::Behaviour::new(mdns::Config::default(), local_peer_id)?,
+				kademlia: kademlia_behaviour(local_peer_id),
+				gossipsub: gossipsub_behaviour(local_key.clone(), topics).expect("error gossipsub_behaviour"),
+			};
+			// If provided, bootstrap routing table with bootnode(s)
+			if !bootnodes.is_empty() {
+				for bootnode in bootnodes {
+					info!("Bootstrapping to: {}", bootnode);
+					let (peer, _, address) = bootnode.rsplitn(3, "/").into_iter().tuples().next().ok_or(anyhow!("Invalid bootnode address, expecting format /ip4/<address>/tcp/<port>/p2p/<peer_id>, got {bootnode}"))?;
+					behaviour.kademlia.add_address(&peer.parse()?, address.parse()?);
+				}
+
+				behaviour.kademlia.bootstrap()?;
+			}
+			Ok(behaviour)
+		})?
+		.with_swarm_config(|c| c.with_idle_connection_timeout(Duration::from_secs(60)))
+		.build();
 
 	let (command_sender, command_receiver) = mpsc::channel(1000);
 	let (event_sender, event_receiver) = mpsc::channel(1000);
@@ -404,7 +440,7 @@ impl EventLoop {
 	/// info to sending a transaction for mempool validation.
 	async fn handle_event(
 		&mut self,
-		event: SwarmEvent<BehaviourEvent, Either<Either<io::Error, io::Error>, void::Void>>,
+		event: SwarmEvent<BehaviourEvent>, //, Either<Either<io::Error, io::Error>, void::Void>
 	) {
 		match event {
 			SwarmEvent::NewListenAddr { address, .. } => {
@@ -430,7 +466,7 @@ impl EventLoop {
 				}
 			},
 			SwarmEvent::IncomingConnectionError { .. } => {},
-			SwarmEvent::Dialing(peer_id) => info!("Dialing {peer_id}"),
+			SwarmEvent::Dialing { peer_id: Some(peer_id), .. } => info!("Dialing {peer_id}"),
 			SwarmEvent::Behaviour(event) => match event {
 				BehaviourEvent::Identify(event) => match event {
 					// Prints peer id identify info is being sent to.
@@ -854,7 +890,7 @@ impl EventLoop {
 
 /// Our network behaviour.
 #[derive(NetworkBehaviour)]
-#[behaviour(to_swarm = "BehaviourEvent")]
+//#[behaviour(to_swarm = "BehaviourEvent")]
 struct Behaviour {
 	identify: identify::Behaviour,
 	// mdns: mdns::tokio::Behaviour,

@@ -17,7 +17,7 @@ reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1.34.0", features = ["full", "macros", "rt-multi-thread"] }
 secp256k1 = { version = "0.27.0", features = [] }
 hex = "0.4.3"
-libp2p = { version = "0.51.4", features = ["secp256k1"] }
+libp2p = { version = "0.53.2", features = ["secp256k1"] }
 anyhow = "1.0.71"
 tonic = "0.10.2"
 prost = "0.12.2"
