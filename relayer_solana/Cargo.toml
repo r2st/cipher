@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 solana-client = "1.17.17"
 solana-sdk = "1.17.17"
-libp2p = { version = "0.51.4"}
-libp2p-gossipsub = { version = "0.44.4" }
+libp2p = { version = "0.53.2" }
+libp2p-gossipsub = { version = "0.46.1" }
 
 [[bin]]
 name = "relayer_solana"

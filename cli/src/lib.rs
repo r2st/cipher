@@ -1,10 +1,11 @@
 use anyhow::{anyhow, Context, Result};
 use cipher_rpc::rpc_model::SubmitTransactionRequest;
-use libp2p::PeerId;
+use libp2p::{identify::UpgradeError::PublicKey, PeerId};
 use primitives::*;
 use secp256k1::{hashes::sha256, Message, Secp256k1, SecretKey};
 use serde::{Deserialize, Serialize};
 use std::{error::Error, fs::File, io::Read};
+
 pub mod types;
 
 // TODO: these needed to be fixed properly
@@ -100,12 +101,12 @@ pub fn secp256k1_creds(
 		Some(privkey) => {
 			let mut keypair_bytes: Vec<u8> = hex::decode(&privkey)?;
 
-			let keypair = libp2p::identity::secp256k1::SecretKey::from_bytes(&mut keypair_bytes)
-				.map(|sk| {
-					libp2p::identity::Keypair::Secp256k1(
-						libp2p::identity::secp256k1::Keypair::from(sk),
-					)
-				})?;
+			let keypair = libp2p::identity::secp256k1::SecretKey::try_from_bytes(
+				&mut keypair_bytes,
+			)
+			.map(|sk| {
+				libp2p::identity::Keypair::from(libp2p::identity::secp256k1::Keypair::from(sk))
+			})?;
 			(keypair, privkey)
 		},
 		None => {
@@ -116,10 +117,12 @@ pub fn secp256k1_creds(
 		},
 	};
 
-	let pubkey = match keypair.public() {
+	/*let pubkey = match keypair.public() {
 		libp2p::identity::PublicKey::Secp256k1(pubkey) => pubkey,
 		_ => return Err(anyhow!("Invalid key").into()),
-	};
+	};*/
+	let pubkey = libp2p::identity::PublicKey::try_into_secp256k1(keypair.public())
+		.map_err(|e| anyhow!("Failed to convert Secp256k1: {:?}", e))?;
 	let pubkey_bytes = pubkey.to_bytes().to_vec();
 	let pubkey = hex::encode(&pubkey_bytes);
 	let peer_id = keypair.public().to_peer_id();
