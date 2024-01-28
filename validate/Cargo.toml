@@ -17,10 +17,10 @@ tokio = { version = "1.34.0", features = ["full"] }
 num-traits = "0.2.15"
 serde = { version = "1.0.163", features = ["derive"] }
 serde_bytes = "0.11.9"
-secp256k1 = { version = "0.27.0", features = [
+secp256k1 = { version = "0.28.1", features = [
     "global-context",
     "rand-std",
-    "bitcoin-hashes-std",
+    "hashes",
 ] }
 serde_json = "1"
 

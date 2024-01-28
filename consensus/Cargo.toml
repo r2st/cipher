@@ -24,7 +24,7 @@ block = { package = 'block', path = '../block', default-features = false }
 vrf-helper = { package = 'vrf-helper', path = '../vrf-helper', default-features = false }
 node_info = { package = 'node_info', path = '../node_info', default-features = false }
 db = { package = 'db', path = '../db', default-features = false }
-secp256k1 = { version = "0.27.0", features = [] }
+secp256k1 = { version = "0.28.1", features = ["hashes"] }
 log = "0.4.18"
 anyhow = "1.0.71"
 tokio = { version = "1.34.0", features = ["full", "sync"] }

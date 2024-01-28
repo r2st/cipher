@@ -16,7 +16,7 @@ ethereum-types = "0.14.1"
 tiny-keccak = "2.0.2"
 serde = { version = "1.0.192", features = ["derive"] }
 serde_json = "1.0.108"
-secp256k1 = { version = "0.27.0", no-default = true, features = ["recovery"] }
+secp256k1 = { version = "0.28.1", no-default = true, features = ["recovery", "hashes"] }
 ethereum = { version = "0.15.0", default-features = false, features = [
     "with-serde",
 ] }
