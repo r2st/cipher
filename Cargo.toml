@@ -38,5 +38,5 @@ members = [
     #"relayer_solana",
     "relayer_bitcoin",
     "relayer_ethereum", "zk_rollups", "optimistic_rollups",
-    "cipher-rpc",
+    "cipher-rpc", "merkle",
 ]
